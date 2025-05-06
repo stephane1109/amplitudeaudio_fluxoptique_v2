@@ -1,13 +1,14 @@
 ############
 # Analyse de l'amplitude sonore et du flux optique
 # import fichier local < 200 Mo et/url - Fenêtre textuell : 1-5-10-20-30-40-50-60 sec
+# possibilité d'intégrer cookies.txt pour dl url Youtube
 # Stéphane Meurisse
 # www.codeandcortex.fr
 # Date : 08-05-2025
 ############
 # python -m streamlit run main.py
 
-# pip install opencv-python soundfile plotly openai-whisper yt-dlp
+# pip install streamlit opencv-python soundfile plotly openai-whisper yt-dlp
 
 import os
 import subprocess

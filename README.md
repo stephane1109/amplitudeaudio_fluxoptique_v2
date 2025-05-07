@@ -1,8 +1,11 @@
 Analyse amplitude sonore & flux optique
 
 Auteur : Stéphane Meurisse
+
 Site : www.codeandcortex.fr
+
 Version : v2
+
 Date : 07-05-2025
 
 Description

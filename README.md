@@ -8,6 +8,7 @@ Version : v2
 
 Date : 07-05-2025
 
+
 Description
 
 Cette application Streamlit permet d’analyser simultanément l’amplitude sonore et le flux optique d’une vidéo. Elle offre :
@@ -24,11 +25,12 @@ Calcul du flux optique Farneback, affichage en heatmap JET, superpositions et ve
 
 Génération d’un rapport texte téléchargeable listant les observations et transcriptions.
 
+
 Librairies principales
 
 Installez les librairies requises :
 
-pip install \
+pip install 
   streamlit \
   opencv-python \
   soundfile \

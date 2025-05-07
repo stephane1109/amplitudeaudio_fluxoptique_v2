@@ -1,14 +1,13 @@
 ############
 # Analyse de l'amplitude sonore et du flux optique
 # import fichier local < 200 Mo et/url - Fenêtre textuell : 1-5-10-20-30-40-50-60 sec
-# possibilité d'intégrer cookies.txt pour dl url Youtube
 # Stéphane Meurisse
 # www.codeandcortex.fr
-# Date : 06-05-2025
+# Date : 08-05-2025
 ############
 # python -m streamlit run main.py
 
-# pip install streamlit opencv-python soundfile plotly openai-whisper yt-dlp
+# pip install opencv-python soundfile plotly openai-whisper yt-dlp
 
 import os
 import subprocess
@@ -138,7 +137,38 @@ def superposer_vecteurs(frame: np.ndarray, flow_map: np.ndarray, step: int=16) -
     return img
 
 # --- Interface Streamlit ---
-st.title("Analyse amplitude sonore & flux optique synchronisé")
+st.title("Analyse amplitude sonore & mouvements - version 2")
+st.markdown("www.codeandcortex.fr - version 2")
+
+# Aide :
+with st.expander("Aide"):
+    # 4) Explications et interprétations
+    st.subheader("Interprétation des résultats")
+
+    st.markdown("**Qu'est-ce que la magnitude optique ?**")
+    st.markdown("La **magnitude optique** correspond à la moyenne des normes des vecteurs de déplacement calculés"
+                "entre deux images consécutives par l'algorithme Farneback. Elle quantifie l'intensité du mouvement visuel :")
+
+    st.markdown(
+        "- *Valeurs élevées* : mouvements rapides ou importants\n"
+        "- *Valeurs faibles* : mouvements lents ou quasi-statiques")
+
+    st.markdown("**Calcul de l'observation atypique audio :**")
+    st.markdown("Une observation audio atypique est détectée lorsque l'amplitude moyenne de l'enveloppe audio dépasse le seuil défini par μ ± kσ,"
+                "où μ est la moyenne des amplitudes sur la vidéo et σ leur écart-type. Cela permet d'identifier des pics sonores significatifs.")
+
+    st.markdown("**Flux optique :**")
+    st.markdown("Le flux optique (Farneback) mesure les déplacements de pixels entre deux images consécutives."
+                "Une heatmap JET traduit ces déplacements en intensité de mouvement, du bleu (faible) au rouge (fort).")
+
+    st.markdown("**Superposition :**")
+    st.markdown("La superposition de la heatmap sur l'image d'origine met en évidence les zones de mouvement significatif,"
+                "conservant la perception visuelle du contenu tout en signalant le mouvement.")
+
+    st.markdown("**Vecteurs de flux :**")
+    st.markdown("Les flèches tracées représentent les vecteurs de déplacement (dx, dy) de blocs de pixels."
+                "Leur densité et leur orientation illustrent la direction et l'amplitude du mouvement.")
+
 video_url = st.text_input("URL YouTube")
 video_local = st.file_uploader("Importer vidéo locale (MP4)", type=["mp4"])
 cookie_file = st.file_uploader("Importer cookies (Netscape)", type=["txt","cookies"])
@@ -184,7 +214,7 @@ if st.button("Lancer l’analyse"):
     times = np.linspace(0, dur, len(data))
     t_int, mn, mx, env = downsample_by_second(data, times, sr)
 
-    # Transcription complète (silencieuse)
+    # Transcription complète avec Whisper modèle small
     st.info("Transcription complète…")
     whisper.load_model("small").transcribe(audio_path, language="fr")
 
@@ -195,7 +225,7 @@ if st.button("Lancer l’analyse"):
     lb, ub = mu - k_value * si, mu + k_value * si
     idx = np.where((env < lb) | (env > ub))[0]
     t_out, env_out = t_int[idx], env[idx]
-    st.info(f"{len(idx)} anomalies détectées")
+    st.info(f"{len(idx)} observations atypiques détectées")
 
     # Graphique amplitude
     fig = go.Figure()
@@ -240,14 +270,14 @@ if st.button("Lancer l’analyse"):
         sp1, sp2 = st.columns(2)
         sup_prev = cv2.addWeighted(evt['frame_prev'], 0.7, heat_prev, 0.3, 0)
         sup_next = cv2.addWeighted(evt['frame'], 0.7, heat_next, 0.3, 0)
-        sp1.image(sup_prev, channels='BGR', caption='Superposition t-1→t')
-        sp2.image(sup_next, channels='BGR', caption='Superposition t→t+1')
+        sp1.image(sup_prev, channels='BGR', caption='Superposition t-1 → t')
+        sp2.image(sup_next, channels='BGR', caption='Superposition t → t+1')
 
         v1, v2 = st.columns(2)
         vec_prev = superposer_vecteurs(evt['frame_prev'], evt['flow_map_prev'])
         vec_next = superposer_vecteurs(evt['frame'], evt['flow_map_next'])
-        v1.image(vec_prev, channels='BGR', caption='Vecteurs t-1→t')
-        v2.image(vec_next, channels='BGR', caption='Vecteurs t→t+1')
+        v1.image(vec_prev, channels='BGR', caption='Vecteurs t-1 → t')
+        v2.image(vec_next, channels='BGR', caption='Vecteurs t → t+1')
 
         # Ajout au rapport
         rapport.append(f"Observation {i+1} [{s0:.1f}s→{s1:.1f}s] ({m0}→{m1}) - mag_t-1: {evt['mag_prev']:.2f}, mag_t: {evt['mag_next']:.2f}")
@@ -266,4 +296,4 @@ if st.session_state['rapport_observations']:
         mime="text/plain",
         key="download_btn",
         on_click=lambda: None
-    )  # aucun st.success ici pour éviter de masquer le rapport
+    )

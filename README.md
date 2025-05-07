@@ -30,12 +30,6 @@ Librairies principales
 
 Installez les librairies requises :
 
-pip install streamlit 
-pip install opencv-python
-pip install soundfile
-pip install plotly
-pip install openai-whisper
-pip install yt-dlp
-pip installnumpy
+pip install streamlit opencv-python soundfile plotly openai-whisper yt-dlp numpy
 
 Le calcul du flux optique est assuré par le script opticalflow.py (fourni dans ce dépôt).

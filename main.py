@@ -80,6 +80,25 @@ def extraire_clip_audio(wav_path: str, centre: float, demi: int, rep: str="downl
     subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
     return clip_path
 
+####
+def extraire_clip_video(video_path: str, centre: float, demi: int, rep: str="downloads") -> str:
+    """
+    Extrait un clip vidéo MP4 (durée 2*demi s) centré sur centre,
+    sans réencodage (mode copy), et retourne son chemin.
+    """
+    os.makedirs(rep, exist_ok=True)
+    start = max(0, centre - demi)
+    dur = 2 * demi
+    base = os.path.splitext(os.path.basename(video_path))[0]
+    clip_mp4 = os.path.join(rep, f"{base}_clip_{start:.2f}s_{dur:.2f}s.mp4")
+    cmd = [
+        "ffmpeg", "-y", "-i", video_path,
+        "-ss", str(start), "-t", str(dur),
+        "-c", "copy", clip_mp4
+    ]
+    subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
+    return clip_mp4
+####
 
 def transcrire_clip_whisper(wav_clip: str, highlight: float) -> str:
     """Transcrit un clip audio et surligne en rouge le segment autour de highlight."""
@@ -239,7 +258,14 @@ if st.button("Lancer l’analyse"):
     st.subheader(f"Analyse anomalies et transcription (±{window}s autour du pic audio)")
     rapport = []
     for i, t0 in enumerate(t_out):
+        # 1) Calcul du pic précis
         t_pic = chercher_pic(data, sr, t0)
+
+        # 2) Extraction et affichage du clip vidéo centré ± window
+        # video_clip = extraire_clip_video(video_path, t_pic, window)
+        # st.video(video_clip)
+
+        # 3) Calcul des bornes et du flux optique
         s0, s1 = t_pic - window, t_pic + window
         m0, m1 = convertir_en_min_sec(s0), convertir_en_min_sec(min(s1, dur))
         evt = compute_optical_flow_metrics(video_path, [t_pic], dt=1.0)[0]
@@ -297,3 +323,7 @@ if st.session_state['rapport_observations']:
         key="download_btn",
         on_click=lambda: None
     )
+
+
+
+
